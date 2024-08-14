@@ -3,8 +3,7 @@
 #include <string>
 
 double text = 0.0;
-extern HWND hwnd = NULL;
-HWND hEdit = NULL;
+HWND hEdit;
 
 // Функция обратного вызова для обработки сообщений окна
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -27,16 +26,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return DefWindowProcA(hwnd, uMsg, wParam, lParam);
 }
 
-// Функция для активации и фокусировки окна
-void ActivateWindow(HWND hwnd)
-{
-    if (IsIconic(hwnd)) {
-        ShowWindow(hwnd, SW_RESTORE);
-    }
-    SetForegroundWindow(hwnd);
-    SetFocus(hwnd);
-}
-
 // Экспортируемая функция для отображения окна ввода
 extern "C" __declspec(dllexport) void __stdcall ShowInputDialog()
 {
@@ -51,19 +40,17 @@ extern "C" __declspec(dllexport) void __stdcall ShowInputDialog()
     RegisterClassA(&wc);
 
     // Создаем окно
-    hwnd = CreateWindowExA(
-        0,
-        CLASS_NAME,
-        "Input Dialog",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 300, 150,
-        NULL,
-        NULL,
-        GetModuleHandle(NULL),
-        NULL
+    HWND hwnd = CreateWindowExA(
+        0,                              // Дополнительные стили окна
+        CLASS_NAME,                     // Имя класса окна
+        "Input Dialog",                 // Заголовок окна
+        WS_OVERLAPPEDWINDOW,            // Стиль окна
+        CW_USEDEFAULT, CW_USEDEFAULT, 300, 150, // Положение и размер окна
+        NULL,                           // Родительское окно
+        NULL,                           // Меню
+        GetModuleHandle(NULL),          // Экземпляр приложения
+        NULL                            // Дополнительные параметры создания
     );
-
-  
 
     if (hwnd == NULL)
     {
@@ -72,32 +59,29 @@ extern "C" __declspec(dllexport) void __stdcall ShowInputDialog()
 
     // Создаем поле ввода
     hEdit = CreateWindowExA(
-        0, "EDIT",
-        NULL,
-        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
-        50, 30, 200, 25,
-        hwnd,
-        NULL,
-        GetModuleHandle(NULL),
-        NULL
+        0, "EDIT",                      // Имя класса поля ввода
+        NULL,                           // Текст по умолчанию
+        WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT, // Стиль поля ввода
+        50, 30, 200, 25,                // Положение и размер
+        hwnd,                           // Родительское окно
+        NULL,                           // Идентификатор поля ввода
+        GetModuleHandle(NULL),          // Экземпляр приложения
+        NULL                            // Дополнительные параметры
     );
 
     // Создаем кнопку "OK"
     CreateWindowExA(
-        0, "BUTTON",
-        "OK",
-        WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
-        110, 70, 75, 25,
-        hwnd,
-        (HMENU)1,
-        GetModuleHandle(NULL),
-        NULL
+        0, "BUTTON",                    // Имя класса кнопки
+        "OK",                           // Текст на кнопке
+        WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, // Стиль кнопки
+        110, 70, 75, 25,                // Положение и размер
+        hwnd,                           // Родительское окно
+        (HMENU)1,                       // Идентификатор кнопки
+        GetModuleHandle(NULL),          // Экземпляр приложения
+        NULL                            // Дополнительные параметры
     );
 
-    // Показать окно
-    ShowWindow(hwnd, SW_SHOW);
-    UpdateWindow(hwnd);
-    ActivateWindow(hwnd);
+    ShowWindow(hwnd, SW_SHOWDEFAULT);
 
     // Запускаем цикл обработки сообщений
     MSG msg = {};
@@ -105,19 +89,6 @@ extern "C" __declspec(dllexport) void __stdcall ShowInputDialog()
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-    }
-}
-
-// Экспортируемая функция для закрытия окна ввода
-extern "C" __declspec(dllexport) void __stdcall CloseInputDialog()
-{
-    if (hwnd != NULL)
-    {
-        DestroyWindow(hwnd);
-        hwnd = NULL;
-    }
-    else {
-        MessageBox(NULL, L"Window is already closed or not initialized.", L"Information", MB_OK | MB_ICONINFORMATION);
     }
 }
 
